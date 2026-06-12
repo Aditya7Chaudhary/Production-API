@@ -30,7 +30,7 @@ class ChatResponse(BaseModel):
     cached: bool = False
     processing_time_ms: float
     
-class HealthkResponse(BaseModel):
+class HealthResponse(BaseModel):
     status: str = "healthy"
     environment: str
     version: str = "1.0.0"

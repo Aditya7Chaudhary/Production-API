@@ -259,7 +259,7 @@ def demo_output_validation():
 # === Secure Pipeline ===
 
 
-class SecurePipeline:
+class SecurityPipeline:
     """Complete secure processing pipeline."""
 
     def __init__(self):
