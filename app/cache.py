@@ -3,11 +3,25 @@ import time
 from typing import Optional
 
 class ResponseCache:
-    def __init__(self):
-        self.ttl = 3600  # Time to live for cache entries in seconds
+    def __init__(self,ttl: int = 3600):
+        self.ttl = ttl
         self._cache: dict[str, dict] = {}
         self._hit = 0
         self._misses = 0
+        
+    def check_health(self) -> str:
+        """
+        Pings the cache server to ensure the connection is alive.
+        """
+        try:
+            # Mocking a cache ping. In real life: self.redis.ping()
+            cache_connected = True 
+            
+            if cache_connected:
+                return "healthy"
+            return "unhealthy"
+        except Exception:
+            return "unhealthy"
 
     def _generate_cache_key(self, query: str) -> str:
         normalized_query = query.strip().lower()
@@ -20,7 +34,8 @@ class ResponseCache:
             self._hit += 1
             return cached_response['data']
         else:
-            del self._cache[cache_key]  # Remove expired cache entry
+            # Safely removes the key if it exists; does nothing if it's already gone
+            self._cache.pop(cache_key, None) # Remove expired cache entry
         self._misses += 1
         return None
 

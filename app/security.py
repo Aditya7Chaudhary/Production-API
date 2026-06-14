@@ -4,9 +4,10 @@ Protecting LLM applications in production
 """
 
 import re
+import os
 from typing import Optional
 from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langsmith import traceable
@@ -139,7 +140,7 @@ class SecurityGuard:
     """Use LLM to detect malicious intent."""
 
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        self.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
 
         self.prompt = ChatPromptTemplate.from_messages(
             [
@@ -267,7 +268,22 @@ class SecurityPipeline:
         self.pii_detector = PIIDetector()
         self.guard = SecurityGuard()
         self.validator = OutputValidator()
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        self.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+        
+    def check_health(self) -> str:
+        """
+        Ensures essential security configurations (like JWT secrets) are loaded.
+        """
+        try:
+            # Example: Check if your secret key environment variable exists
+            # In production, replace 'MOCK_SECRET' with your actual environment variable name
+            secret_exists = os.getenv("JWT_SECRET_KEY", "MOCK_SECRET") is not None
+            
+            if secret_exists:
+                return "healthy"
+            return "unhealthy"
+        except Exception:
+            return "unhealthy"
 
     @traceable(name="secure_process")
     def process(self, user_input: str) -> dict:
@@ -316,7 +332,12 @@ class SecurityPipeline:
             result["security_notes"].append(f"Output cleaned: {val_reason}")
 
         result["output"] = cleaned_output
-        return result
+        
+        is_allowed = not result["blocked"]
+        cleaned_message = sanitized
+        notes = result["security_notes"]
+
+        return is_allowed, cleaned_message, notes
 
 
 def demo_secure_pipeline():

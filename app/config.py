@@ -1,8 +1,11 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from dotenv import load_dotenv
+import os
 
-class Settings(BaseSettings):
-    
+load_dotenv()
+
+class Settings(BaseSettings): 
     #LLM configuration
     groq_api_key: str
     primary_model: str = "llama-3.1-8b-instant"
@@ -10,7 +13,7 @@ class Settings(BaseSettings):
     
     #LangSmith
     langchain_tracing_v2: bool = True
-    langchain_api_key: str = ""
+    langchain_api_key: str
     langchain_project: str = "production-api"
     
     #Application
@@ -19,6 +22,8 @@ class Settings(BaseSettings):
     rate_limit: str = "20/minute"
     cache_ttl_seconds: int = 300
     max_retries: int = 3
+    temperature: float = 0
+    timeout: int = 10
     
     model_config = {"env_file": ".env", "extra": "ignore"}
 
